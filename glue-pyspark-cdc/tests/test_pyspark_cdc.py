@@ -45,3 +45,26 @@ def test_get_target_high_watermark(spark,
         target_data=input_data,
     )
     assert target_high_watermark == "id6"
+
+def test_get_high_watermark(
+        spark,
+        cdc_log_valid_schema,
+        cdc_log_valid_raw_data,
+        cdc_conformed_data
+        ):
+    source_data = spark.createDataFrame(cdc_log_valid_raw_data,
+                                       cdc_log_valid_schema
+                                       )
+
+    target_data = spark.createDataFrame(cdc_conformed_data,
+                                       cdc_log_valid_schema
+                                       )
+
+    cdc = cdcIngestion(spark)
+    source_high_watermark, target_high_watermark = (
+    cdc.get_high_watermark(high_water_column ='identificator',
+                           source_data=source_data, 
+                           target_data=target_data
+                           ))
+    assert source_high_watermark == 'id6'
+    assert target_high_watermark == 'id6'
