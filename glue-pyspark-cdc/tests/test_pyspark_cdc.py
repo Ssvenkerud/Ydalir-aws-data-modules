@@ -101,9 +101,9 @@ def test_process_updates(
     update_data = spark.createDataFrame(cdc_update_data, cdc_log_valid_schema)
 
     cdc = cdcIngestion(spark)
-    new_data, deletes = cdc.process_updates(
+    deletes, upsert_data  = cdc.process_updates(
             update_data=update_data,
-            uniqe_key=["identificator"]
+            unique_key=["identificator"]
             )
     assert len(deletes.filter(deletes.op != 'D').collect()) == 0
     assert deletes.dropDuplicates(["identificator"]).count() == deletes.count()

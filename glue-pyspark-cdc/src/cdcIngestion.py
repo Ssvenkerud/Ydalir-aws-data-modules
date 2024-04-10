@@ -5,10 +5,11 @@ import pyspark.sql.functions as F
 class cdcIngestion:
     def __init__(
         self,
-        sparkSession,
-        high_water_column="",
+        sparkSession=None,
+        high_water_column=None,
         source_high_watermark=None,
         target_high_watermark=None,
+        unique_key=None,
         source_data=None,
         target_data=None,
         update_data=None
@@ -17,6 +18,7 @@ class cdcIngestion:
         self.high_water_column = high_water_column
         self.source_high_watermark = source_high_watermark
         self.target_high_watermark = target_high_watermark
+        self.unique_key = unique_key
         self.target_data = target_data
         self.source_data = source_data
         self.update_data = update_data
@@ -104,3 +106,22 @@ class cdcIngestion:
         self.update_data = source_data.filter(F.col(high_water_column)>target_high_watermark)
 
         return self.update_data
+
+    def process_updates(
+            self,
+            spark=None,
+            update_data=None,
+            unique_key=None,
+            ):
+        if spark is None:
+            spark=self.spark
+        if update_data is None:
+            update_data = self.update_data
+        if unique_key is None:
+            unique_key = self.unique_key
+
+        self.deletes = update_data.filter(F.col('op')=='D').dropDuplicates(unique_key)
+
+        self.upsert_data = None
+
+        return self.deletes, self.upsert_data

@@ -152,7 +152,7 @@ def cdc_conformed_data():
     ]
 
 @pytest.fixture(scope="session")
-def cdc_udate_data():
+def cdc_update_data():
     return [(
             "id5",
             "moose",
@@ -204,8 +204,6 @@ def cdc_udate_data():
             "5",
         ),
         ("id2", None, None, None, None, None, "D", "6"),
-
-
             ]
 
 
