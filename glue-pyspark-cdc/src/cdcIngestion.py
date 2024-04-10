@@ -6,15 +6,14 @@ class cdcIngestion:
     def __init__(
         self,
         sparkSession,
-        source_data_location="",
         high_water_column="",
         source_data=None,
         target_data=None,
     ):
         self.spark = sparkSession
-        self.source_data_location = source_data_location
         self.high_water_column = high_water_column
-        self.source_high_water_mark = None
+        self.source_high_watermark = None
+        self.target_high_watermark = None
         self.target_data = target_data
         self.source_data = source_data
 
@@ -48,11 +47,18 @@ class cdcIngestion:
             ):
         if spark is None:
             spark = self.spark
-        if  high_water_column in None:
-            high_water_column = self.high_water_column
         if target_data is None:
             target_data = self.target_data
-
+        if high_water_column is None:
+            high_water_column = self.high_water_column
+        
+        if target_data is not None:
+            self.target_high_watermark = (
+                    target_data.select(high_water_column)
+                    .agg(F.max(high_water_column))
+                    .collect()[0][0]
+                    )
+        return self.target_high_watermark
 
     def get_high_water_mark(
         self,
