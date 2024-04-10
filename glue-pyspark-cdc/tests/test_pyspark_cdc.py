@@ -1,6 +1,7 @@
 from pyspark.context import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
+import pyspark.sql.functions as F
 import pytest
 import sys
 import os
@@ -68,3 +69,25 @@ def test_get_high_watermark(
                            ))
     assert source_high_watermark == 'id6'
     assert target_high_watermark == 'id6'
+
+
+def test_get_latest_updates(
+        spark,
+        cdc_log_valid_raw_data,
+        cdc_log_valid_schema
+        ):
+    source_data = spark.createDataFrame(
+            cdc_log_valid_raw_data, 
+            cdc_log_valid_schema
+            )
+    cdc = cdcIngestion(spark)
+    update_data = cdc.get_updates(
+            source_data=source_data,
+            target_high_watermark='1',
+            high_water_column = 'transact_id'
+            )
+    assert len(update_data.filter(update_data.op.isNull()).collect()) ==0
+    assert len(update_data.filter(update_data.transact_id.isNull()).collect())==0
+    assert(update_data.select('transact_id')
+           .agg(F.min('transact_id'))
+           .collect()[0][0]) == '2'
