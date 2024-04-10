@@ -103,10 +103,31 @@ def test_process_updates(
     cdc = cdcIngestion(spark)
     deletes, upsert_data  = cdc.process_updates(
             update_data=update_data,
-            unique_key=["identificator"]
+            unique_key=["identificator"],
+            high_water_column="transact_id"
             )
     assert len(deletes.filter(deletes.op != 'D').collect()) == 0
     assert deletes.dropDuplicates(["identificator"]).count() == deletes.count()
     assert len(upsert_data.filter(upsert_data.op == 'D').collect()) == 0
     assert upsert_data.dropDuplicates(["identificator"]).count() == upsert_data.count()
+
+
+def test_process_multiple_updates(
+        spark,
+        cdc_data_multiple_updates,
+        cdc_log_valid_schema
+        ):
+    update_data = spark.createDataFrame(cdc_data_multiple_updates, cdc_log_valid_schema)
+    cdc = cdcIngestion(spark)
+    delets, upsert_data = cdc.process_updates(
+            update_data= update_data,
+            unique_key=["identificator"],
+            high_water_column="transact_id"
+            )
+    assert len(delets.collect())==0
+    assert len(upsert_data.collect())>0
+    assert upsert_data.dropDuplicates(["identificator"]).count() == upsert_data.count()
+    assert (upsert_data.filter(F.col("identificator")=="id3")
+            .select(upsert_data.transact_id)
+            .collect()[0][0]) == "4"
 

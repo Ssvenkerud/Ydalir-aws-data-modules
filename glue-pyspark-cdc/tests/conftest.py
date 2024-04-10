@@ -210,6 +210,23 @@ def cdc_update_data():
         ("id8", None, None, None, None, None, "D", "8"),
             ]
 
+@pytest.fixture(scope="session")
+def cdc_data_multiple_updates():
+    return [
+    ("id3", "Elefant",1 , False, "2021-03-03 03:03:03.000", "2023-03-03", "", ""),
+    ("id3", "Elefant",2 , False, "2022-03-03 03:03:03.000", "2023-03-03", "U","1"),
+    ("id3", "Elefant", 3, False, "2023-03-03 03:03:03.000", "2023-03-03", "U","2"),
+    ("id3", "Elefant", 4, False, "2024-03-03 03:03:03.000", "2023-03-03", "U","3"),
+    ("id3", "Elefant", 5, False, "2025-03-03 03:03:03.000", "2023-03-03", "U","4"),
+    ]
+@pytest.fixture(scope="session")
+def cdc_data_update_with_delete():
+    return [
+    ("id3", "Elefant", 4, False, "2024-03-03 03:03:03.000", "2023-03-03", "U","3"),
+    ("id3", None, None, None, None, None, "D","4"),
+    ]
+
+
 
 @pytest.fixture(scope="session")
 def spark():

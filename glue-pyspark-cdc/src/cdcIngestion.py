@@ -1,5 +1,5 @@
 import pyspark.sql.functions as F
-
+from pyspark.sql import Window
 
 # change so that each method recives all its input as parameters.
 class cdcIngestion:
@@ -112,6 +112,7 @@ class cdcIngestion:
             spark=None,
             update_data=None,
             unique_key=None,
+            high_water_column=None,
             ):
         if spark is None:
             spark=self.spark
@@ -119,9 +120,20 @@ class cdcIngestion:
             update_data = self.update_data
         if unique_key is None:
             unique_key = self.unique_key
+        if high_water_column is None:
+            high_water_column = self.high_water_column
 
-        self.deletes = update_data.filter(F.col('op')=='D').dropDuplicates(unique_key)
+        self.deletes = (update_data.filter(F.col('op')=='D')
+                        .dropDuplicates(unique_key))
+        multi_update_window =(Window.partitionBy(unique_key)
+                              .orderBy(F.col(high_water_column).desc())
+                              )
 
-        self.upsert_data = None
+        self.upsert_data = (update_data.filter(F.col('op')!='D')
+                            .withColumn('rank',F.rank().over(multi_update_window))
+                            .filter(F.col('rank')==1)
+                            .drop('rank')
+                            )
+
 
         return self.deletes, self.upsert_data
