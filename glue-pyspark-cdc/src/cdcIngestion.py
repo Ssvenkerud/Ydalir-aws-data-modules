@@ -7,15 +7,19 @@ class cdcIngestion:
         self,
         sparkSession,
         high_water_column="",
+        source_high_watermark=None,
+        target_high_watermark=None,
         source_data=None,
         target_data=None,
+        update_data=None
     ):
         self.spark = sparkSession
         self.high_water_column = high_water_column
-        self.source_high_watermark = None
-        self.target_high_watermark = None
+        self.source_high_watermark = source_high_watermark
+        self.target_high_watermark = target_high_watermark
         self.target_data = target_data
         self.source_data = source_data
+        self.update_data = update_data
 
     def get_source_high_watermark(
         self,
@@ -81,4 +85,22 @@ class cdcIngestion:
 
         return self.source_high_watermark, self.target_high_watermark
 
+    def get_updates(
+            self,
+            spark=None,
+            high_water_column=None,
+            target_high_watermark=None,
+            source_data=None,
+            ):
+        if spark is None:
+            spark = self.spark
+        if high_water_column is None:
+            high_water_column = self.high_water_column
+        if target_high_watermark is None:
+           target_high_watermark = self.target_high_watermark
+        if source_data is None:
+            source_data = self.source_data
 
+        self.update_data = source_data.filter(F.col(high_water_column)>target_high_watermark)
+
+        return self.update_data
