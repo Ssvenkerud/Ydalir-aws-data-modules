@@ -107,3 +107,6 @@ def test_process_updates(
             )
     assert len(deletes.filter(deletes.op != 'D').collect()) == 0
     assert deletes.dropDuplicates(["identificator"]).count() == deletes.count()
+    assert len(upsert_data.filter(upsert_data.op == 'D').collect()) == 0
+    assert upsert_data.dropDuplicates(["identificator"]).count() == upsert_data.count()
+

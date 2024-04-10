@@ -204,6 +204,10 @@ def cdc_update_data():
             "5",
         ),
         ("id2", None, None, None, None, None, "D", "6"),
+        ("id8", "Crow", 97342, False, "2045-04-12:12:13:34.343",
+         "2045-04-12","I", "7"),
+        ("id8", None, None, None, None, None, "D", "8"),
+        ("id8", None, None, None, None, None, "D", "8"),
             ]
 
 
