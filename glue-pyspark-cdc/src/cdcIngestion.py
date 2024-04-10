@@ -31,12 +31,12 @@ class cdcIngestion:
             source_data = self.source_data
 
         if source_data is not None:
-            self.source_high_water_mark = (
+            self.source_high_watermark = (
                 source_data.select(high_water_column)
                 .agg(F.max(high_water_column))
                 .collect()[0][0]
             )
-        return self.source_high_water_mark
+        return self.source_high_watermark
 
 
     def get_target_high_watermark(
@@ -51,7 +51,7 @@ class cdcIngestion:
             target_data = self.target_data
         if high_water_column is None:
             high_water_column = self.high_water_column
-        
+
         if target_data is not None:
             self.target_high_watermark = (
                     target_data.select(high_water_column)
@@ -60,31 +60,25 @@ class cdcIngestion:
                     )
         return self.target_high_watermark
 
-    def get_high_water_mark(
+    def get_high_watermark(
         self,
         spark=None,
-        source_data=None,
-        high_water_mark=None,
         high_water_column=None,
+        source_data=None,
         target_data=None,
     ):
         if spark is None:
             spark = self.spark
-        if source_data is None:
-            source_data = self.source_data
         if high_water_column is None:
             high_water_column = self.high_water_column
+        if source_data is None:
+            source_data = self.source_data
+        if target_data is None:
+            target_data = self.target_data
 
-        if source_data is not None:
-            self.source_high_water_mark = (
-                source_data.select(high_water_column)
-                .agg(F.max(high_water_column))
-                .collect()[0][0]
-            )
-        else:
-            pass
+        self.get_source_high_watermark(spark, high_water_column, source_data)
+        self.get_target_high_watermark(spark, high_water_column, target_data)
 
-        return self.source_high_water_mark, self.target_high_water_mark
+        return self.source_high_watermark, self.target_high_watermark
 
-    def run(self):
-        self.get_high_water_mark()
+
