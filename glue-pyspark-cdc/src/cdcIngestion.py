@@ -124,7 +124,9 @@ class cdcIngestion:
             high_water_column = self.high_water_column
 
         self.deletes = (update_data.filter(F.col('op')=='D')
-                        .dropDuplicates(unique_key))
+                        .dropDuplicates(unique_key)
+                        .dropDuplicates())
+
         multi_update_window =(Window.partitionBy(unique_key)
                               .orderBy(F.col(high_water_column).desc())
                               )
@@ -133,7 +135,9 @@ class cdcIngestion:
                             .withColumn('rank',F.rank().over(multi_update_window))
                             .filter(F.col('rank')==1)
                             .drop('rank')
+                            .join(self.deletes, on=unique_key, how='anti')
+                            .dropDuplicates()
                             )
 
 
-        return self.deletes, self.upsert_data
+        return self.deletes, self.upsert_data 

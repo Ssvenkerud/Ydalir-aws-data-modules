@@ -131,3 +131,36 @@ def test_process_multiple_updates(
             .select(upsert_data.transact_id)
             .collect()[0][0]) == "4"
 
+def test_process_updates_with_delete(spark,
+                                     cdc_data_update_with_delete,
+                                     cdc_log_valid_schema
+                                     ):
+    update_data = spark.createDataFrame(cdc_data_update_with_delete, cdc_log_valid_schema)
+
+    cdc = cdcIngestion(spark)
+    deletes, upsert_data = cdc.process_updates(
+            update_data= update_data,
+            unique_key=["identificator"],
+            high_water_column="transact_id"
+            )
+    assert len(upsert_data.collect())==0
+    assert len(deletes.collect())>0
+    assert deletes.columns == update_data.columns
+    assert upsert_data.columns == update_data.columns
+
+def test_process_updates_with_duplicates(spark,
+                                         cdc_data_update_with_duplicates,
+                                         cdc_log_valid_schema):
+    update_data = spark.createDataFrame(cdc_data_update_with_duplicates,
+                                        cdc_log_valid_schema)
+
+    cdc = cdcIngestion(spark)
+    deletes, upsert_data = cdc.process_updates(
+            update_data= update_data,
+            unique_key=["identificator"],
+            high_water_column="transact_id"
+            )
+    assert len(upsert_data.collect())==2
+    assert len(deletes.collect())==1
+
+                                      
