@@ -1,6 +1,8 @@
 from pyspark.context import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
+from moto import mock_aws
+import boto3
 import pytest
 import sys
 import os
@@ -237,7 +239,64 @@ def cdc_data_update_with_duplicates():
     ("id5", None, None, None, None, None, "D","6"),
     ("id5", None, None, None, None, None, "D","6"),
     ]
+@pytest.fixture(scope="session")
+def cdc_upsert_data():
+    return [
+        (
+            "id1",
+            "monkey",
+            17438531,
+            True,
+            "2021-08-08-08:08:08.000",
+            "2028-08-08",
+            "U",
+            "3",
+        ),
+        (
+            "id5",
+            "moose",
+            17438531,
+            True,
+            "2021-09-09-09:09:09.000",
+            "2029-09-09",
+            "U",
+            "4",
+        ),
+        (
+            "id6",
+            "Squirrel",
+            17438531,
+            True,
+            "2021-10-10-10:10:10.000",
+            "2030-10-10",
+            "I",
+            "5",
+        ),
+
+
+            ]
+@pytest.fixture(scope="session")
+def cdc_deletes_data():
+    return [
+            ("id3", None, None, None, None, None, "D","4"),
+
+            ]
+@pytest.fixture(scope="session")
+def aws_credentials():
+    """Mocked AWS Credentials for moto."""
+    os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"
+    os.environ["AWS_SESSION_TOKEN"] = "testing"
+
+@mock_aws
+@pytest.fixture(scope="session")
+def mock_redshift(aws_credentials):
+    redshift_client =  boto3.client("redshift-data", region_name="eu-north-1")
+    yield redshift_client
 
 @pytest.fixture(scope="session")
 def spark():
     return SparkSession.builder.appName("Test_engine").getOrCreate()
+
+

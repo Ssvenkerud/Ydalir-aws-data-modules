@@ -2,6 +2,10 @@ from pyspark.context import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 import pyspark.sql.functions as F
+import boto3
+from moto import mock_aws
+from moto.core import DEFAULT_ACCOUNT_ID
+from moto.redshiftdata import redshiftdata_backends
 import pytest
 import sys
 import os
@@ -16,6 +20,19 @@ def test_engine_test(spark):
     spark_conf = spark.sparkContext._conf.getAll()
     print(spark_conf)
 
+
+@mock_aws
+def test_redshift_config(mock_redshift):
+    response = mock_redshift.execute_statement(
+        ClusterIdentifier='test-cluster',
+        Database='dwh',
+        DbUser='test-user',
+        Sql="select * from dummy")
+    backend = redshiftdata_backends[DEFAULT_ACCOUNT_ID]["us-east-1"]  # Use the appropriate account/region
+    print("dummy")
+    for statement in backend.statements.values():
+        print("itter")
+        print(statement.query_string)
 
 def test_get_source_high_watermark(spark,
                                    cdc_log_valid_raw_data,
@@ -142,7 +159,7 @@ def test_process_updates_with_delete(spark,
             update_data= update_data,
             unique_key=["identificator"],
             high_water_column="transact_id"
-            )
+             )
     assert len(upsert_data.collect())==0
     assert len(deletes.collect())>0
     assert deletes.columns == update_data.columns
@@ -162,5 +179,19 @@ def test_process_updates_with_duplicates(spark,
             )
     assert len(upsert_data.collect())==2
     assert len(deletes.collect())==1
+@mock_aws
+def test_redshift_write(spark,
+                        cdc_upsert_data,
+                        cdc_deletes_data,
+                        cdc_log_valid_schema
+                        ):
+ 
+    deletes = spark.createDataFrame(cdc_deletes_data, cdc_log_valid_schema)
+    upsert_data = spark.createDataFrame(cdc_upsert_data, cdc_log_valid_schema)
 
-                                      
+    cdc = cdcIngestion(spark)
+#    reports = cdc.redshift_writer(
+        #          target_table= "",
+        #         deleted=deletes,
+        #         upsert_data=upsert_data,
+        #          )
