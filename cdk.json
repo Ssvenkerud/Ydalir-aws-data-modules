@@ -1,0 +1,9 @@
+{
+  "app": "python3 glue-python-redshift-execute/dev-infra.py",
+  "versionReporting": "false",
+  "requireApproval": "never",
+  "context": {
+    "project": "dbt-demo",
+    "tags": []
+  }
+}
