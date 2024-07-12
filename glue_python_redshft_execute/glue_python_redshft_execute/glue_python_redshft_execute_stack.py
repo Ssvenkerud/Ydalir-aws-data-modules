@@ -1,9 +1,6 @@
-from aws_cdk import (
-    # Duration,
-    Stack,
-    # aws_sqs as sqs,
-)
+from aws_cdk import Stack  # Duration,; aws_sqs as sqs,
 from constructs import Construct
+
 
 class GluePythonRedshftExecuteStack(Stack):
 

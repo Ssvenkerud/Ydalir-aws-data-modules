@@ -1,5 +1,5 @@
-from aws_cdk import aws_ec2 as _ec2
 from aws_cdk import Stack
+from aws_cdk import aws_ec2 as _ec2
 from constructs import Construct
 
 
@@ -64,4 +64,4 @@ class VpcStack(Stack):
 
     @property
     def get_vpc_private_subnet_ids(self):
-         return self.vpc.select_subnets(subnet_type=_ec2.SubnetType.PRIVATE).subnet_ids
+        return self.vpc.select_subnets(subnet_type=_ec2.SubnetType.PRIVATE).subnet_ids

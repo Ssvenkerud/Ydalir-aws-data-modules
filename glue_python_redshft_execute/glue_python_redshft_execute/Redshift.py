@@ -1,10 +1,11 @@
-from aws_cdk import aws_redshift as _redshift
+import os
+
+from aws_cdk import Aws, CfnOutput, RemovalPolicy, Stack
 from aws_cdk import aws_ec2 as _ec2
 from aws_cdk import aws_iam as _iam
+from aws_cdk import aws_redshift as _redshift
 from aws_cdk import aws_secretsmanager as _sm
-from aws_cdk import Stack, RemovalPolicy, CfnOutput, Aws
 from constructs import Construct
-import os
 
 
 class GlobalArgs:
@@ -17,7 +18,6 @@ class GlobalArgs:
     REPO_NAME = ""
     SOURCE_INFO = f""
     VERSION = ""
-
 
 
 class RedshiftStack(Stack):
@@ -42,7 +42,7 @@ class RedshiftStack(Stack):
             generate_secret_string=_sm.SecretStringGenerator(exclude_punctuation=True),
             removal_policy=RemovalPolicy.DESTROY,
         )
-    
+
         # Redshift IAM Role
         _rs_cluster_role = _iam.Role(
             self,
@@ -52,7 +52,6 @@ class RedshiftStack(Stack):
                 _iam.ManagedPolicy.from_aws_managed_policy_name(
                     "AmazonS3ReadOnlyAccess"
                 )
-
             ],
         )
         # Subnet group for cluster
@@ -92,9 +91,9 @@ class RedshiftStack(Stack):
             vpc_security_group_ids=[to_redshift_sg.security_group_id],
         )
 
-#        output_0 = CfnOutput(
-#            self, "automationForm", value=f"{Globalargs.SOURCE_INFO}", description=""
- #       )
+        #        output_0 = CfnOutput(
+        #            self, "automationForm", value=f"{Globalargs.SOURCE_INFO}", description=""
+        #       )
         output_1 = CfnOutput(
             self,
             "RedshiftCluster",
@@ -117,4 +116,4 @@ class RedshiftStack(Stack):
             "RedshiftIAMRole",
             value=(f"{_rs_cluster_role.role_arn}"),
             description=f"Redshift Cluster IAM Role Arn",
-            ) 
+        )
