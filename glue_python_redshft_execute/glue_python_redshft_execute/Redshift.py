@@ -84,7 +84,7 @@ class RedshiftStack(Stack):
             cluster_type="single-node",
             db_name="test_db",
             master_username="dwh_user",
-            master_user_password="6QO52sfZC0aVd8bmUkh$Zjy9HEsPeeGsC9C3d9stO",  # demo_cluster_secret.secret_value.to_string(),
+            master_user_password="6QO52sfZC0aVd8bmUkh$Zjy9HEsPeeGsC9C3d9stO",
             iam_roles=[_rs_cluster_role.role_arn],
             node_type=ec2_instance_type,
             cluster_subnet_group_name=test_cluster_subnet_group.ref,
